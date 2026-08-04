@@ -25,9 +25,16 @@
 <body>
 
 <svg class="mark" viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
-  <rect width="108" height="108" rx="24" fill="#3355D8"/>
-  <path fill="#fff" d="M46,41 L46,37 A4,4 0 0 1 50,33 L58,33 A4,4 0 0 1 62,37 L62,41 L57,41 L57,38 L51,38 L51,41 Z"/>
-  <path fill="#fff" fill-rule="evenodd" d="M32,43 L76,43 A4,4 0 0 1 80,47 L80,71 A4,4 0 0 1 76,75 L32,75 A4,4 0 0 1 28,71 L28,47 A4,4 0 0 1 32,43 Z M50,54 L58,54 A2,2 0 0 1 60,56 L60,62 A2,2 0 0 1 58,64 L50,64 A2,2 0 0 1 48,62 L48,56 A2,2 0 0 1 50,54 Z"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3355D8"/><stop offset="1" stop-color="#18276E"/>
+    </linearGradient>
+  </defs>
+  <rect width="108" height="108" rx="24" fill="url(#bg)"/>
+  <path d="M34.8,57.2 L46.8,69.2 L68.4,44.4" fill="none" stroke="#FFB02E"
+        stroke-width="9.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M81.96,38.91 A10.4,10.4 0 1 1 70.69,27.64" fill="none" stroke="#FFB02E"
+        stroke-width="6.4" stroke-linecap="round"/>
 </svg>
 
 <h1>Contractor CRM</h1>
