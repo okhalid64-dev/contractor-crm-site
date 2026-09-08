@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Add your details</title>
+<style>
+  /* Same tokens as the app: page #EEF1F5, ink #171A21, accent #3355D8, hairline #E5E8EE. */
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #EEF1F5; color: #171A21;
+    min-height: 100vh; display: flex; justify-content: center;
+    padding: 24px 16px 48px;
+  }
+  main { width: 100%; max-width: 420px; }
+  .card {
+    background: #fff; border: 1px solid #E5E8EE; border-radius: 18px;
+    padding: 24px 20px; margin-top: 16px;
+  }
+  h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin: 18px 0 6px; }
+  .sub { color: #6B7280; font-size: 14px; font-weight: 500; line-height: 1.45; }
+  .badge {
+    width: 56px; height: 56px; border-radius: 16px; background: #E7ECFB;
+    display: flex; align-items: center; justify-content: center;
+    color: #3355D8; font-weight: 800; font-size: 22px;
+  }
+  label {
+    display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.04em;
+    text-transform: uppercase; color: #6B7280; margin: 16px 0 6px;
+  }
+  input, textarea {
+    width: 100%; font: inherit; font-size: 16px; font-weight: 500;
+    padding: 13px 14px; border: 1px solid #E5E8EE; border-radius: 14px;
+    background: #fff; color: #171A21; outline: none;
+  }
+  input:focus, textarea:focus { border-color: #3355D8; }
+  textarea { resize: vertical; min-height: 84px; }
+  button {
+    width: 100%; margin-top: 22px; padding: 16px; font: inherit; font-size: 15px;
+    font-weight: 800; color: #fff; background: #3355D8; border: 0; border-radius: 14px;
+    cursor: pointer; min-height: 54px;
+  }
+  button:disabled { background: #E5E8EE; color: #6B7280; cursor: default; }
+  .error {
+    background: #FDECEB; color: #C0392B; border-radius: 14px; padding: 14px 16px;
+    font-size: 14px; font-weight: 600; margin-top: 16px; display: none;
+  }
+  .center { text-align: center; padding: 40px 8px; }
+  .check {
+    width: 72px; height: 72px; border-radius: 50%; background: #E4F5EA;
+    color: #1C7A45; font-size: 34px; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 18px;
+  }
+  .hidden { display: none !important; }
+  .footer { text-align: center; color: #6B7280; font-size: 12px; margin-top: 28px; }
+</style>
+</head>
+<body>
+<main>
+  <!-- Loading -->
+  <div id="loading" class="card center"><p class="sub">Opening your invite…</p></div>
+
+  <!-- The form -->
+  <div id="form-view" class="card hidden">
+    <div class="badge" id="badge">•</div>
+    <h1 id="headline">Add your details</h1>
+    <p class="sub" id="intro"></p>
+    <form id="form">
+      <label for="name">Your name</label>
+      <input id="name" autocomplete="name" placeholder="First and last name" required>
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" placeholder="name@example.com">
+      <label for="address">Service address</label>
+      <input id="address" autocomplete="street-address" placeholder="Street, city">
+      <label for="note">Anything worth knowing? <span style="text-transform:none;font-weight:600">(optional)</span></label>
+      <textarea id="note" placeholder="Gate code, parking, the dog's name…"></textarea>
+      <div class="error" id="error"></div>
+      <button id="submit" type="submit">Send my details</button>
+    </form>
+  </div>
+
+  <!-- Terminal states -->
+  <div id="done" class="card center hidden">
+    <div class="check">✓</div>
+    <h1 style="margin-top:0">All set</h1>
+    <p class="sub" id="done-text">Your details are on their way.</p>
+  </div>
+  <div id="dead" class="card center hidden">
+    <h1 style="margin-top:0">This link isn't active</h1>
+    <p class="sub" id="dead-text">It may have expired or already been used. Ask for a fresh one.</p>
+  </div>
+
+  <p class="footer">Powered by Simple CRM · Your details go only to the business that invited you.</p>
+</main>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────────────────
+// Config. The Toolbelt sync Worker's base URL, filled in once it is deployed (see
+// toolbelt-worker/README.md in the app repo). Until then this page shows the not-active
+// message for every token, which is true.
+//
+// No SDK, no sign-in: the token in the fragment IS the capability. Two plain requests —
+//   GET  {API}/v1/invites/{token}          → { business_name, greeting_name }
+//   POST {API}/v1/invites/{token}/submit   { name, email, address, note } → { ok: true }
+// — and the Worker enforces validity, expiry and single use on its side.
+//
+// For local testing against `node test/serve.js 8787`, open the page as
+//   invite.html?api=http://127.0.0.1:8787#<token>
+// ─────────────────────────────────────────────────────────────────────────────────────────
+const API = "REPLACE_ME";
+
+const $ = (id) => document.getElementById(id);
+const show = (id) => {
+  for (const view of ["loading", "form-view", "done", "dead"]) $(view).classList.add("hidden");
+  $(id).classList.remove("hidden");
+};
+const fail = (message) => {
+  if (message) $("dead-text").textContent = message;
+  show("dead");
+};
+
+// The token lives in the fragment on purpose: fragments are never sent to the server, so
+// the secret stays out of GitHub Pages' (or any host's) access logs. It only ever travels
+// in the request *path* to the Worker, over HTTPS.
+const token = location.hash.replace(/^#/, "").trim();
+const apiOverride = new URLSearchParams(location.search).get("api");
+
+/** Calls the Worker; resolves the JSON body, or rejects with the Worker's own error code. */
+async function call(path, init) {
+  const base = (apiOverride || API).replace(/\/+$/, "");
+  const response = await fetch(`${base}${path}`, {
+    ...init,
+    headers: { "content-type": "application/json", ...(init && init.headers) },
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(body.message || `HTTP ${response.status}`);
+    error.code = body.error || "http_error";
+    throw error;
+  }
+  return body;
+}
+
+async function main() {
+  if (!token) return fail("This link is incomplete — open it exactly as it was sent to you.");
+  if (!/^[0-9a-f]{40}$/i.test(token)) return fail();
+  if (API === "REPLACE_ME" && !apiOverride) return fail();
+
+  let invite;
+  try {
+    invite = await call(`/v1/invites/${token}`);
+  } catch (error) {
+    // Already submitted is a success state seen twice, not a broken link.
+    if (error.code === "invite_used") {
+      $("done-text").textContent = "You've already sent your details.";
+      return show("done");
+    }
+    if (error.code === "invite_expired") return fail("This link has expired. Ask for a fresh one.");
+    if (error.code === "unknown_invite") return fail();
+    return fail("We couldn't open your invite. Check your connection and try the link again.");
+  }
+
+  const business = invite.business_name || "Your contractor";
+  $("badge").textContent = business.trim().charAt(0).toUpperCase() || "•";
+  $("intro").textContent =
+    `${business} uses Simple CRM to keep track of your projects. ` +
+    "Fill this in once and they'll have everything they need.";
+  if (invite.greeting_name) $("name").value = invite.greeting_name;
+  show("form-view");
+
+  $("form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = $("submit");
+    button.disabled = true;
+    button.textContent = "Sending…";
+    $("error").style.display = "none";
+    try {
+      await call(`/v1/invites/${token}/submit`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: $("name").value.trim(),
+          email: $("email").value.trim(),
+          address: $("address").value.trim(),
+          note: $("note").value.trim(),
+        }),
+      });
+      $("done-text").textContent = `Your details are on their way to ${business}.`;
+      show("done");
+    } catch (error) {
+      if (error.code === "invite_unavailable") {
+        // Raced with another submit, or expired while the form was open. Either way the
+        // Worker will not take a second copy, and saying "try again" would be a lie.
+        return fail("This link was already used or has expired. Ask for a fresh one.");
+      }
+      $("error").textContent = "That didn't go through. Check your connection and try again.";
+      $("error").style.display = "block";
+      button.disabled = false;
+      button.textContent = "Send my details";
+    }
+  });
+}
+
+main().catch(() => fail());
+</script>
+</body>
+</html>
