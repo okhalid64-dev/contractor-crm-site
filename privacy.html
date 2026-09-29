@@ -23,57 +23,84 @@
 <body>
 
 <h1>Privacy Policy</h1>
-<p class="updated">Simple CRM · last updated 4 August 2026</p>
+<p class="updated">Simple CRM · last updated 29 September 2026</p>
 
 <div class="card">
-  <p class="lead"><strong>Simple CRM does not collect any data.</strong> Everything you
-  enter stays on your phone. There is no account, no server, and nothing is transmitted
-  anywhere.</p>
+  <p class="lead"><strong>Simple CRM works entirely on your phone unless you choose
+  otherwise.</strong> Without an account, your records never leave your device. If you sign
+  in to back up, sync or add your crew, your business records are stored on our server so
+  your other phones and your crew can reach them. This page says exactly what, where, and
+  how to delete it.</p>
 </div>
 
-<h2>What the app stores</h2>
-<p>The app saves the records you create — customers and their contact details, service
-addresses, projects, jobs, appointments, estimates, invoices, payments, costs, photos you
-attach, and your own business details — in a database inside the app's private storage on
-your device. Android prevents other apps from reading it.</p>
+<h2>What the app stores on your phone</h2>
+<p>The records you create — customers and their contact details, service addresses,
+projects, jobs, appointments, estimates, invoices, payments, costs and mileage, photos and
+receipts you attach, and your own business details — are saved in the app's private storage
+on your device. Android prevents other apps from reading it.</p>
 
-<h2>What leaves your device</h2>
-<p>Nothing, automatically. The app makes no network requests. It contains no analytics, no
-crash reporting, no advertising, and no third-party SDKs of any kind.</p>
-<p>There are three places where you can deliberately send something out, and each one hands
-off to an app you choose and leaves Simple CRM entirely:</p>
-<ul>
-  <li>Tapping <strong>Call</strong> or <strong>Text</strong> on a customer opens your phone
-  or messaging app with their number filled in.</li>
-  <li>Sharing an invoice or estimate opens Android's share sheet so you can send it however
-  you like.</li>
-  <li>Attaching a photo copies the image you pick into the app's own storage.</li>
-</ul>
-<p>What happens to that information afterwards is governed by the app you handed it to, not
-by us.</p>
+<h2>If you sign in (Cloud &amp; team)</h2>
+<p>Signing in is optional and uses <strong>Sign in with Google</strong>. There is no
+password. From your Google account we keep only its account identifier and your email
+address; Google may show us your name and profile picture during sign-in, but we don't
+store them.</p>
+<p>While you're signed in and on a plan, the app copies your business records to our server
+so they're backed up and appear on your other devices: customers and their contact details
+and addresses, projects, jobs, appointments, estimates, invoices, line items, payments,
+costs, mileage and your price book. <strong>Photos and receipt images are not uploaded</strong>;
+they stay on the phone that took them.</p>
+<p>The server runs on Cloudflare (Workers and D1) in the United States. Everything travels
+over encrypted connections (HTTPS). We don't sell this data, show ads, or share it with
+anyone except as described here.</p>
+
+<h2>Crew accounts</h2>
+<p>On a Crew plan the owner can invite people with a one-time code. Everyone on a crew works
+from the same business records, and members can see each other's email addresses. The owner
+can remove a crew member at any time; that person then loses access to the business's
+cloud records.</p>
+
+<h2>Customer invite links</h2>
+<p>If you text a customer an invite link, the web form they open sends the details they
+choose to type — name, email, address and a note — to our server, where they wait until your
+app collects them into the customer's record. They are deleted from the server as soon as
+your app has them. Unused links expire after 14 days. The customer's phone number is never
+sent; the text message is composed on your own phone.</p>
+
+<h2>Subscriptions</h2>
+<p>Plans are bought through Google Play. We never see your payment details. Your phone sends
+us the purchase token Google issues so our server can confirm the subscription with Google.</p>
+
+<h2>Analytics and crash reports</h2>
+<p>The app uses Google's Firebase Analytics and Crashlytics to count how features are used and
+to report crashes: which screens and actions are used, app version, device model and
+operating system, and a random app-instance identifier. These never include the contents of
+your records — no customer names, amounts or notes.</p>
 
 <h2>Permissions</h2>
-<p>The app requests no runtime permissions. Attaching a photo uses Android's system photo
-picker, which grants access only to the single image you choose.</p>
-
-<h2>Backups</h2>
-<p>If you have Android's own backup turned on, Google may include the app's data in your
-device backup, encrypted with your device credentials. That is a function of Android, not of
-this app, and you can turn it off in your device settings under Backup.</p>
+<p>The app requests no runtime permissions. Photos come from Android's photo picker or your
+camera app, which hand over only the image you choose.</p>
 
 <h2>Deleting your data</h2>
-<p>Uninstalling the app removes everything it has stored. You can also clear it from Android
-Settings → Apps → Simple CRM → Storage → Clear storage. Because nothing is ever sent to
-us, there is nothing held elsewhere for you to request the deletion of.</p>
+<ul>
+  <li><strong>On your phone:</strong> uninstall the app, or clear it from Android Settings →
+  Apps → Simple CRM → Storage → Clear storage.</li>
+  <li><strong>Your account and cloud copy:</strong> in the app, open Settings → Cloud &amp;
+  team → <em>Delete my account</em>. This deletes your sign-in, all your sessions and, if you
+  own the business, its entire cloud copy and your crew's access to it. It happens
+  immediately. Records on your phone are not touched.</li>
+  <li><strong>Without the app:</strong> see <a href="delete-account.html">Delete your
+  account</a>, or email us from the address you sign in with.</li>
+</ul>
+<p>Deleting your account does not cancel a Google Play subscription — cancel it in Google Play
+→ Payments &amp; subscriptions.</p>
 
 <h2>Children</h2>
-<p>Simple CRM is a tool for running a contracting business and is not directed at
-children under 13.</p>
+<p>Simple CRM is a tool for running a contracting business and is not directed at children
+under 13.</p>
 
 <h2>Changes</h2>
-<p>If a future version of the app starts collecting or transmitting anything — cloud sync,
-for example — this policy will be updated before that version ships, and the change will be
-described in the release notes.</p>
+<p>If what the app collects changes, this page will be updated before that version ships and
+the change described in the release notes.</p>
 
 <h2>Contact</h2>
 <p>Questions about this policy: <a href="mailto:support@nextlayertechnology.net">support@nextlayertechnology.net</a></p>
