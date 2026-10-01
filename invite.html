@@ -70,6 +70,10 @@
     <form id="form">
       <label for="name">Your name</label>
       <input id="name" autocomplete="name" placeholder="First and last name" required>
+      <div id="phone-wrap" class="hidden">
+        <label for="phone">Mobile number</label>
+        <input id="phone" type="tel" autocomplete="tel" placeholder="(555) 555-0100">
+      </div>
       <label for="email">Email</label>
       <input id="email" type="email" autocomplete="email" placeholder="name@example.com">
       <label for="address">Service address</label>
@@ -97,6 +101,11 @@
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────────────────
+// Two kinds of link land here:
+//   #<token>        an invite: the contractor texted this one person, who fills in the rest
+//   #join-<token>   the business's sign-up link: reusable, anyone can add themselves (and so
+//                   also gives a phone number, which an invite already has)
+//
 // Config. The Toolbelt sync Worker's base URL, filled in once it is deployed (see
 // toolbelt-worker/README.md in the app repo). Until then this page shows the not-active
 // message for every token, which is true.
@@ -124,7 +133,10 @@ const fail = (message) => {
 // The token lives in the fragment on purpose: fragments are never sent to the server, so
 // the secret stays out of GitHub Pages' (or any host's) access logs. It only ever travels
 // in the request *path* to the Worker, over HTTPS.
-const token = location.hash.replace(/^#/, "").trim();
+const fragment = location.hash.replace(/^#/, "").trim();
+const signup = fragment.startsWith("join-");
+const token = signup ? fragment.slice(5) : fragment;
+const base = signup ? "/v1/intake" : "/v1/invites";
 const apiOverride = new URLSearchParams(location.search).get("api");
 
 /** Calls the Worker; resolves the JSON body, or rejects with the Worker's own error code. */
@@ -146,11 +158,12 @@ async function call(path, init) {
 async function main() {
   if (!token) return fail("This link is incomplete — open it exactly as it was sent to you.");
   if (!/^[0-9a-f]{40}$/i.test(token)) return fail();
+  if (signup) document.title = "Add your details";
   if (API === "REPLACE_ME" && !apiOverride) return fail();
 
   let invite;
   try {
-    invite = await call(`/v1/invites/${token}`);
+    invite = await call(`${base}/${token}`);
   } catch (error) {
     // Already submitted is a success state seen twice, not a broken link.
     if (error.code === "invite_used") {
@@ -158,29 +171,39 @@ async function main() {
       return show("done");
     }
     if (error.code === "invite_expired") return fail("This link has expired. Ask for a fresh one.");
-    if (error.code === "unknown_invite") return fail();
+    if (error.code === "link_revoked") return fail("This link has been replaced. Ask the business for their new one.");
+    if (error.code === "unknown_invite" || error.code === "unknown_link") return fail();
     return fail("We couldn't open your invite. Check your connection and try the link again.");
   }
 
   const business = invite.business_name || "Your contractor";
   $("badge").textContent = business.trim().charAt(0).toUpperCase() || "•";
-  $("intro").textContent =
-    `${business} uses Simple CRM to keep track of your projects. ` +
-    "Fill this in once and they'll have everything they need.";
+  $("intro").textContent = signup
+    ? `${business} uses Simple CRM to look after their customers. Add your details and they'll be in touch.`
+    : `${business} uses Simple CRM to keep track of your projects. ` +
+      "Fill this in once and they'll have everything they need.";
   if (invite.greeting_name) $("name").value = invite.greeting_name;
+  if (signup) $("phone-wrap").classList.remove("hidden");
   show("form-view");
 
   $("form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const button = $("submit");
+    $("error").style.display = "none";
+    if (signup && !$("phone").value.trim() && !$("email").value.trim()) {
+      $("error").textContent = "Add a mobile number or an email so they can reach you.";
+      $("error").style.display = "block";
+      return;
+    }
     button.disabled = true;
     button.textContent = "Sending…";
     $("error").style.display = "none";
     try {
-      await call(`/v1/invites/${token}/submit`, {
+      await call(`${base}/${token}/submit`, {
         method: "POST",
         body: JSON.stringify({
           name: $("name").value.trim(),
+          phone: signup ? $("phone").value.trim() : undefined,
           email: $("email").value.trim(),
           address: $("address").value.trim(),
           note: $("note").value.trim(),
@@ -189,6 +212,14 @@ async function main() {
       $("done-text").textContent = `Your details are on their way to ${business}.`;
       show("done");
     } catch (error) {
+      if (error.code === "too_many") {
+        $("error").textContent = "They've had a lot of sign-ups today. Please try again tomorrow.";
+        $("error").style.display = "block";
+        button.disabled = false;
+        button.textContent = "Send my details";
+        return;
+      }
+      if (error.code === "link_revoked") return fail("This link has been replaced. Ask the business for their new one.");
       if (error.code === "invite_unavailable") {
         // Raced with another submit, or expired while the form was open. Either way the
         // Worker will not take a second copy, and saying "try again" would be a lie.
